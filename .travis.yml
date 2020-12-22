@@ -1,0 +1,56 @@
+
+language: shell
+os: linux
+dist: bionic
+
+cache:
+  directories:
+  - $HOME/.ccache
+
+env:
+  global:
+    - USE_CCACHE=true
+
+addons:
+  apt:
+    packages:
+    - curl
+    - gcc-multilib
+    - g++-multilib
+    - gperf
+    - lib32ncurses5-dev
+    - lib32z-dev
+    - libc6-dev-i386
+    - libgl1-mesa-dev
+    - libxml2-utils
+    - lzop
+    - maven
+    - openjdk-8-jdk
+    - schedtool
+    - xsltproc
+    - python3
+
+before_install:
+    - export LC_ALL=C
+    - sudo sh -c "curl https://storage.googleapis.com/git-repo-downloads/repo > /bin/repo && chmod a+x /bin/repo"
+    
+script:
+    - sudo update-java-alternatives -s java-1.8.0-openjdk-amd64
+    - ccache -M 10G
+    - sudo sh -c "mkdir /build && chown $(whoami):$(whoami) /build" && cd /build
+    - git config --global color.ui false
+    - repo init --depth=1 -u git://github.com/PitchBlackRecoveryProject/manifest_pb.git -b android-7.1
+    - mkdir .repo/local_manifests && cp -r $TRAVIS_BUILD_DIR/klte.xml .repo/local_manifests
+    - repo sync --no-clone-bundle --no-tags -j$(nproc)
+    - source build/envsetup.sh
+    - lunch omni_klte-eng
+    - mka -j$(nproc) recoveryimage
+
+deploy:
+    provider: releases
+    token: $GitOAUTHToken
+    file_glob: true
+    file: "/build/out/target/product/klte/*.zip"
+    skip_cleanup: true
+    on:
+      branch: android-7.1

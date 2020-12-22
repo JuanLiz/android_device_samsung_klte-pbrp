@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+	<project path="device/samsung/klte" name="JuanLiz/android_device_samsung_klte-pbrp" remote="github" revision="android-7.1" />
+</manifest>
